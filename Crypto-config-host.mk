@@ -718,6 +718,46 @@ mips64_src_files :=
 
 mips64_exclude_files :=
 
+ppc_clang_asflags :=
+
+ppc_cflags := \
+  -DAES_ASM \
+  -DDES_RISC1 \
+  -DDES_UNROLL \
+  -DOPENSSL_BN_ASM_MONT \
+  -DOPENSSL_CPUID_OBJ \
+  -DSHA1_ASM \
+  -DSHA256_ASM \
+
+ppc_src_files := \
+  crypto/aes/asm/aes-ppc.S \
+  crypto/bn/asm/bn-ppc.S \
+  crypto/bn/asm/ppc-mont.S \
+  crypto/bn/asm/ppc64-mont.S \
+  crypto/ppccap.c \
+  crypto/ppccpuid.S \
+  crypto/sha/asm/sha1-ppc.S \
+  crypto/sha/asm/sha256-ppc.S \
+
+ppc_exclude_files := \
+  crypto/mem_clr.c \
+
+ppc64_clang_asflags :=
+
+ppc64_cflags := \
+  -DAES_ASM \
+  -DDES_RISC1 \
+  -DDES_UNROLL \
+  -DOPENSSL_BN_ASM_MONT \
+  -DOPENSSL_CPUID_OBJ \
+  -DSHA1_ASM \
+  -DSHA256_ASM \
+  -DSHA512_ASM \
+
+ppc64_src_files :=
+
+ppc64_exclude_files :=
+
 mips32r6_clang_asflags :=
 
 mips32r6_cflags := \
@@ -747,6 +787,10 @@ LOCAL_CFLAGS_x86 += $(x86_cflags)
 LOCAL_SRC_FILES_x86 += $(filter-out $(x86_exclude_files), $(common_src_files) $(x86_src_files))
 LOCAL_CFLAGS_x86_64 += $(x86_64_cflags)
 LOCAL_SRC_FILES_x86_64 += $(filter-out $(x86_64_exclude_files), $(common_src_files) $(x86_64_src_files))
+LOCAL_CFLAGS_ppc += $(ppc_cflags)
+LOCAL_SRC_FILES_ppc += $(filter-out $(ppc_exclude_files), $(common_src_files) $(ppc_src_files))
+LOCAL_CFLAGS_ppc64 += $(ppc64_cflags)
+LOCAL_SRC_FILES_ppc64 += $(filter-out $(ppc64_exclude_files), $(common_src_files) $(ppc64_src_files))
 else
 $(warning Unknown host OS $(HOST_OS))
 LOCAL_SRC_FILES += $(common_src_files)

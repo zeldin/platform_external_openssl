@@ -163,6 +163,17 @@ function gen_asm_x86_64 () {
   $PERL_EXE "$1" elf "$OUT" > "$OUT"
 }
 
+function gen_asm_ppc () {
+  local OUT
+  OUT=$(default_asm_file "$@")
+  $PERL_EXE "$1" 32 "$OUT" > "$OUT"
+}
+
+function gen_asm_ppc64 () {
+  local OUT
+  OUT=$(default_asm_file "$@")
+  $PERL_EXE "$1" 64 "$OUT" > "$OUT"
+}
 
 # Filter all items in a list that match a given pattern.
 # $1: space-separated list
@@ -219,6 +230,7 @@ function check_asm_flags() {
   local actual_flags
   local defines="OPENSSL_CRYPTO_DEFINES_$arch"
 
+  chmod +x ./Configure
   PERL=/usr/bin/perl run_verbose ./Configure $CONFIGURE_ARGS $target
 
   unsorted_flags="$(awk '/^CFLAG=/ { sub(/^CFLAG= .*-Wall /, ""); gsub(/-D/, ""); print; }' Makefile)"
@@ -411,7 +423,7 @@ print_defines_in_mk() {
 function generate_config_mk() {
   declare -r output="$1"
   declare -r prefix="$2"
-  declare -r all_archs="arm arm64 x86 x86_64 mips mips64"
+  declare -r all_archs="arm arm64 x86 x86_64 mips mips64 ppc ppc64"
   declare -r variant_archs="mips32r6"
 
   echo "Generating $(basename $output)"
@@ -497,6 +509,10 @@ LOCAL_CFLAGS_x86 += \$(x86_cflags)
 LOCAL_SRC_FILES_x86 += \$(filter-out \$(x86_exclude_files), \$(common_src_files) \$(x86_src_files))
 LOCAL_CFLAGS_x86_64 += \$(x86_64_cflags)
 LOCAL_SRC_FILES_x86_64 += \$(filter-out \$(x86_64_exclude_files), \$(common_src_files) \$(x86_64_src_files))
+LOCAL_CFLAGS_ppc += \$(ppc_cflags)
+LOCAL_SRC_FILES_ppc += \$(filter-out \$(ppc_exclude_files), \$(common_src_files) \$(ppc_src_files))
+LOCAL_CFLAGS_ppc64 += \$(ppc64_cflags)
+LOCAL_SRC_FILES_ppc64 += \$(filter-out \$(ppc64_exclude_files), \$(common_src_files) \$(ppc64_src_files))
 else
 \$(warning Unknown host OS \$(HOST_OS))
 LOCAL_SRC_FILES += \$(common_src_files)
@@ -518,6 +534,8 @@ function import() {
   check_asm_flags arm64 linux-aarch64
   check_asm_flags x86 linux-elf
   check_asm_flags x86_64 linux-x86_64
+  check_asm_flags ppc linux-ppc
+  check_asm_flags ppc64 linux-ppc64
 
   generate_build_config_mk
   generate_opensslconf_h
@@ -600,6 +618,19 @@ function import() {
   gen_asm_x86_64 crypto/bn/asm/x86_64-mont5.pl
   gen_asm_x86_64 crypto/rc4/asm/rc4-x86_64.pl
   gen_asm_x86_64 crypto/rc4/asm/rc4-md5-x86_64.pl
+
+  # Generate ppc asm
+  gen_asm_ppc crypto/ppccpuid.pl
+  gen_asm_ppc crypto/sha/asm/sha1-ppc.pl
+  gen_asm_ppc crypto/sha/asm/sha512-ppc.pl crypto/sha/asm/sha256-ppc.S
+  gen_asm_ppc crypto/sha/asm/sha512-ppc.pl
+  gen_asm_ppc crypto/aes/asm/aes-ppc.pl
+  gen_asm_ppc crypto/bn/asm/ppc.pl crypto/bn/asm/bn-ppc.S
+  gen_asm_ppc crypto/bn/asm/ppc-mont.pl
+  gen_asm_ppc crypto/bn/asm/ppc64-mont.pl
+
+  # TODO: Generate ppc64 asm
+
 
   # Setup android.testssl directory
   mkdir android.testssl
